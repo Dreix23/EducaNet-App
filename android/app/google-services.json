@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "816592384727",
+    "project_id": "educanet-70549",
+    "storage_bucket": "educanet-70549.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:816592384727:android:f284984d4dbabd06b13692",
+        "android_client_info": {
+          "package_name": "com.instantdigital.educanet"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBs6VaxWLD6TXm-GL5yBMGvJ56k1O0NQmk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
