@@ -7,6 +7,7 @@ class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // Registra un nuevo usuario
   Future<UserCredential> registerUser(String email, String password, String name, String role, String school) async {
     UserCredential userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
       email: email,
@@ -25,10 +26,12 @@ class AuthService {
     return userCredential;
   }
 
+  // Inicia sesión de un usuario existente
   Future<UserCredential> loginUser(String email, String password) async {
     return await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
   }
 
+  // Obtiene el rol del usuario
   Future<String?> getUserRole(User? user) async {
     if (user == null) {
       throw Exception('No hay usuario autenticado');
@@ -41,14 +44,17 @@ class AuthService {
     return null;
   }
 
+  // Cierra la sesión del usuario actual
   Future<void> logout() async {
     await _firebaseAuth.signOut();
   }
 
+  // Envía un correo para restablecer la contraseña
   Future<void> resetPassword(String email) async {
     await _firebaseAuth.sendPasswordResetEmail(email: email);
   }
 
+  // Obtiene los datos de un usuario específico
   Future<AppUser> getUser(String uid) async {
     try {
       DocumentSnapshot snapshot = await _firestore.collection('users').doc(uid).get();
@@ -63,6 +69,7 @@ class AuthService {
     }
   }
 
+  // Actualiza el perfil de un usuario
   Future<void> updateUserProfile(String uid, Map<String, dynamic> data) async {
     try {
       await _firestore.collection('users').doc(uid).update(data);

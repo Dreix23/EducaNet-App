@@ -89,6 +89,20 @@ class _PadrePerfilScreenState extends State<PadrePerfilScreen> {
     }
   }
 
+  void _deleteQRCode(int index) async {
+    try {
+      String qrCodeToDelete = (form.control('codigoQR') as FormArray<String>).controls[index].value ?? '';
+      await _userController.deleteQRCode(qrCodeToDelete);
+      setState(() {
+        (form.control('codigoQR') as FormArray<String>).removeAt(index);
+      });
+      CustomSnackbar.show(context, 'Código QR eliminado con éxito', SnackbarState.completed);
+    } catch (e) {
+      AppLogger.log("Error al eliminar el código QR: $e", prefix: 'PERFIL_PADRE:');
+      CustomSnackbar.show(context, 'Error al eliminar el código QR', SnackbarState.error);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -115,9 +129,7 @@ class _PadrePerfilScreenState extends State<PadrePerfilScreen> {
           form: form,
           userName: currentUser?.name ?? 'Nombre del Padre',
           isEditing: isEditing,
-          onDeleteQRCode: (index) {
-            (form.control('codigoQR') as FormArray<String>).removeAt(index);
-          },
+          onDeleteQRCode: _deleteQRCode,
         ),
       ),
     );

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../widgets/custom_button.dart';
 import '../widgets/screen_util.dart';
 import 'AuthenticationScreen.dart';
@@ -44,58 +43,62 @@ class _WelcomeState extends State<WelcomeScreen> {
                 ),
               ),
               Expanded(
-                child: _buildColumnWidgets(),
+                child: _buildColumnWidgets(showLogo: false),
               ),
             ],
           );
         } else {
-          return _buildColumnWidgets();
+          return _buildColumnWidgets(showLogo: true);
         }
       },
     );
   }
 
-  Widget _buildColumnWidgets() {
+  Widget _buildColumnWidgets({required bool showLogo}) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        double contentWidth = constraints.maxWidth > 600 ? 400 : constraints.maxWidth * 0.9;
+
         return Column(
           children: [
-            if (MediaQuery.of(context).size.width <= 600)
-              Flexible(
-                flex: 2,
+            if (showLogo)
+              Expanded(
+                flex: 1,
                 child: Center(
                   child: Image.asset(
                     'assets/images/logo.png',
-                    width: 200,
+                    width: contentWidth,
                     fit: BoxFit.contain,
                   ),
                 ),
               ),
-            Flexible(
-              flex: 3,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  SizedBox(height: 60), // Espacio reducido
-                  Text(
-                    "Empecemos",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    "Nunca es mejor momento que ahora para empezar.",
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black38
+            Expanded(
+              flex: showLogo ? 1 : 2,
+              child: Container(
+                width: contentWidth,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Empecemos",
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 38),
-                  _buildButton('profesor', false),
-                  SizedBox(height: 22),
-                  _buildButton('padre', true),
-                ],
+                    SizedBox(height: 10),
+                    Text(
+                      "Nunca es mejor momento que ahora para empezar.",
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black38
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 38),
+                    _buildButton('profesor', false),
+                    SizedBox(height: 22),
+                    _buildButton('padre', true),
+                  ],
+                ),
               ),
             ),
           ],

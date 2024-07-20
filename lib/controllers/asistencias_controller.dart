@@ -36,15 +36,17 @@ class AsistenciasController extends GetxController {
   Future<void> cargarCursos() async {
     try {
       String grado = await _alumnoService.obtenerGradoAlumno();
-      Map<String, List<String>> materias = await _alumnoService.cargarMaterias();
-      cursos.value = materias[grado] ?? [];
-      AppLogger.log('Cursos cargados: ${cursos.value}');
-      if (cursos.isNotEmpty) {
-        cursoSeleccionado.value = cursos[0];
-        cargarAsistencias();
+      await for (var materias in _alumnoService.cargarMaterias()) {
+        cursos.value = materias[grado] ?? [];
+        AppLogger.log('Cursos cargados: ${cursos.value}', prefix: 'ASISTENCIAS:');
+        if (cursos.isNotEmpty) {
+          cursoSeleccionado.value = cursos[0];
+          cargarAsistencias();
+        }
+        break; // Solo necesitamos el primer valor del stream
       }
     } catch (e) {
-      AppLogger.log('Error al cargar cursos: $e');
+      AppLogger.log('Error al cargar cursos: $e', prefix: 'ASISTENCIAS:');
     }
   }
 

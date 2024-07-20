@@ -15,15 +15,12 @@ class NotificationService extends GetxService {
   final String _serverKey = 'AAAAviCy8tc:APA91bEzBlpicFdg2R-WycoLHEdcazJyeHfpRTyFc6U_kLvWplhb24ESUX95wj-YF24CWHvAXGF7X75C-k275g9qwvtCm_JNx7QP1l6xljYuP79KmLaeqpJRwznzMG7wpxTxMuSev7ij';
 
   Future<NotificationService> init() async {
-    AppLogger.log('Iniciando NotificationService', prefix: 'NOTIFICACION:');
     await inicializarNotificaciones();
     _configurarManejadorNotificaciones();
-    AppLogger.log('NotificationService inicializado', prefix: 'NOTIFICACION:');
     return this;
   }
 
   Future<void> inicializarNotificaciones() async {
-    AppLogger.log('Solicitando permisos de notificación', prefix: 'NOTIFICACION:');
     NotificationSettings settings = await _firebaseMessaging.requestPermission(
       alert: true,
       badge: true,
@@ -31,7 +28,6 @@ class NotificationService extends GetxService {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      AppLogger.log('Permisos de notificación concedidos', prefix: 'NOTIFICACION:');
       String? token = await obtenerTokenFCM();
       if (token != null) {
         await actualizarTokenFCM(token);
@@ -39,26 +35,16 @@ class NotificationService extends GetxService {
         AppLogger.log('No se pudo obtener el token FCM', prefix: 'ERROR:');
       }
       _firebaseMessaging.onTokenRefresh.listen(actualizarTokenFCM);
-    } else {
-      AppLogger.log('Permisos de notificación denegados', prefix: 'ADVERTENCIA:');
     }
   }
 
   void _configurarManejadorNotificaciones() {
-    AppLogger.log('Configurando manejadores de notificaciones', prefix: 'NOTIFICACION:');
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      AppLogger.log('Notificación recibida en primer plano', prefix: 'NOTIFICACION:');
-      _mostrarNotificacion(message);
-    });
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      AppLogger.log('Notificación abierta desde la app', prefix: 'NOTIFICACION:');
-      _mostrarNotificacion(message);
-    });
+    FirebaseMessaging.onMessage.listen(_mostrarNotificacion);
+    FirebaseMessaging.onMessageOpenedApp.listen(_mostrarNotificacion);
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   }
 
   void _mostrarNotificacion(RemoteMessage message) {
-    AppLogger.log('Mostrando notificación: ${message.messageId}', prefix: 'NOTIFICACION:');
     AwesomeNotifications().createNotification(
       content: NotificationContent(
         id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
@@ -70,7 +56,6 @@ class NotificationService extends GetxService {
   }
 
   Future<String?> obtenerTokenFCM() async {
-    AppLogger.log('Obteniendo token FCM', prefix: 'NOTIFICACION:');
     return await _firebaseMessaging.getToken();
   }
 
@@ -78,7 +63,6 @@ class NotificationService extends GetxService {
     User? user = _auth.currentUser;
     if (user != null) {
       try {
-        AppLogger.log('Actualizando token FCM para usuario: ${user.uid}', prefix: 'NOTIFICACION:');
         DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.uid).get();
 
         if (userDoc.exists) {
@@ -89,27 +73,20 @@ class NotificationService extends GetxService {
               await _firestore.collection('users').doc(user.uid).set({
                 'fcmToken': token,
               }, SetOptions(merge: true));
-              AppLogger.log('Token FCM actualizado para padre: ${user.uid}', prefix: 'NOTIFICACION:');
+              AppLogger.log('Token FCM actualizado', prefix: 'INFO:');
             } else {
-              AppLogger.log('Token FCM no necesita actualización para padre: ${user.uid}', prefix: 'NOTIFICACION:');
+              AppLogger.log('Token FCM no necesita actualización', prefix: 'INFO:');
             }
-          } else {
-            AppLogger.log('Usuario no es padre: ${user.uid}', prefix: 'ADVERTENCIA:');
           }
-        } else {
-          AppLogger.log('Usuario no existe: ${user.uid}', prefix: 'ERROR:');
         }
       } catch (e) {
         AppLogger.log('Error al actualizar el token FCM: $e', prefix: 'ERROR:');
       }
-    } else {
-      AppLogger.log('No hay usuario autenticado', prefix: 'ERROR:');
     }
   }
 
   Future<void> enviarNotificacionPorQR({required String qrCode, required String titulo, required String cuerpo}) async {
     try {
-      AppLogger.log('Enviando notificación por QR: $qrCode', prefix: 'NOTIFICACION:');
       QuerySnapshot querySnapshot = await _firestore.collection('users')
           .where('codigoQR', arrayContains: qrCode)
           .where('role', isEqualTo: 'padre')
@@ -117,7 +94,7 @@ class NotificationService extends GetxService {
           .get();
 
       if (querySnapshot.docs.isEmpty) {
-        AppLogger.log('No se encontró padre para el QR: $qrCode', prefix: 'ADVERTENCIA:');
+        AppLogger.log('No se encontró un padre con el código QR proporcionado', prefix: 'INFO:');
         return;
       }
 
@@ -125,7 +102,7 @@ class NotificationService extends GetxService {
       String? tokenDestinatario = padreDoc.get('fcmToken');
 
       if (tokenDestinatario == null) {
-        AppLogger.log('No se encontró el token FCM del padre', prefix: 'ERROR:');
+        AppLogger.log('El padre no tiene un token FCM registrado', prefix: 'INFO:');
         return;
       }
 
@@ -143,7 +120,6 @@ class NotificationService extends GetxService {
         'to': tokenDestinatario,
       };
 
-      AppLogger.log('Enviando solicitud HTTP para notificación', prefix: 'NOTIFICACION:');
       final response = await http.post(
         Uri.parse(url),
         headers: headers,
@@ -151,10 +127,9 @@ class NotificationService extends GetxService {
       );
 
       if (response.statusCode == 200) {
-        AppLogger.log('Notificación enviada correctamente al padre: ${padreDoc.id}', prefix: 'NOTIFICACION:');
+        AppLogger.log('Notificación enviada correctamente', prefix: 'INFO:');
       } else {
         AppLogger.log('Error al enviar la notificación. Código de estado: ${response.statusCode}', prefix: 'ERROR:');
-        AppLogger.log('Respuesta del servidor: ${response.body}', prefix: 'ERROR:');
       }
     } catch (e) {
       AppLogger.log('Error al enviar notificación: $e', prefix: 'ERROR:');
@@ -164,7 +139,6 @@ class NotificationService extends GetxService {
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  AppLogger.log('Notificación recibida en segundo plano: ${message.messageId}', prefix: 'NOTIFICACION:');
   AwesomeNotifications().createNotification(
     content: NotificationContent(
       id: DateTime.now().millisecondsSinceEpoch.remainder(100000),

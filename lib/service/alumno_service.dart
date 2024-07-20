@@ -27,7 +27,7 @@ class AlumnoService {
     }
   }
 
-  Future<Map<String, List<String>>> cargarMaterias() async {
+  Stream<Map<String, List<String>>> cargarMaterias() async* {
     try {
       String jsonString = await rootBundle.loadString('assets/materias.json');
       Map<String, dynamic> jsonMap = json.decode(jsonString);
@@ -35,11 +35,11 @@ class AlumnoService {
       jsonMap.forEach((key, value) {
         materias[key] = List<String>.from(value);
       });
-      AppLogger.log('Materias cargadas: $materias');
-      return materias;
+      AppLogger.log('Materias cargadas: $materias', prefix: 'CARGAR_MATERIAS:');
+      yield materias;
     } catch (e) {
-      AppLogger.log('Error al cargar materias: $e');
-      throw e;
+      AppLogger.log('Error al cargar materias: $e', prefix: 'ERROR_CARGAR_MATERIAS:');
+      yield {};
     }
   }
 

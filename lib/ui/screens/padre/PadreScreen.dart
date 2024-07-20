@@ -11,6 +11,7 @@ import '../../../dialogs/add_hijo_dialog.dart';
 import '../../../models/user.dart';
 import '../../../service/auth_service.dart';
 import '../../../service/firestore_service.dart';
+import '../../../service/notification_service.dart';
 import '../../../utils/logger.dart';
 import '../../components/padres_box.dart';
 import '../../widgets/custom_app_bar.dart';
@@ -43,6 +44,7 @@ class _PadreScreenState extends State<PadreScreen> {
   final AsistenciasController _asistenciasController = Get.put(AsistenciasController());
   final AvisosController _avisosController = Get.put(AvisosController());
   final NotificationController _notificationController = Get.find<NotificationController>();
+  final NotificationService _notificationService = Get.find<NotificationService>();
   AuthService authService = AuthService();
 
   List<Map<String, String>> alumnos = [];
@@ -55,6 +57,7 @@ class _PadreScreenState extends State<PadreScreen> {
     super.initState();
     _loadUserData();
     _loadAlumnos();
+    _updateFCMToken();
   }
 
   @override
@@ -127,6 +130,17 @@ class _PadreScreenState extends State<PadreScreen> {
     }
   }
 
+  Future<void> _updateFCMToken() async {
+    try {
+      String? token = await _notificationService.obtenerTokenFCM();
+      if (token != null) {
+        await _notificationService.actualizarTokenFCM(token);
+        AppLogger.log("Token FCM actualizado: $token", prefix: 'INFO:');
+      }
+    } catch (e) {
+      AppLogger.log("Error al actualizar el token FCM: $e", prefix: 'ERROR:');
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
